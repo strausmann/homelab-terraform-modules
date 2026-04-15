@@ -44,21 +44,21 @@ output "luks_smoketest_01_ip" {
   description = "DHCP-IP der Smoke-Test VM (erscheint erst nach LUKS-Unlock + cloud-init)"
 }
 
-# --- Smoke-Test 02: Frische VM fuer Ansible-Role-Validierung ---
-# Nach dem ersten Test auf VM 146: Wir brauchen eine saubere VM ohne
-# alten Clevis-Binding um die fixed Role zu testen (DEVICE=<ens18> + IP=dhcp
-# in initramfs.conf).
+# --- Smoke-Test 02: End-to-End Test mit Template 9052 (Keyfile in initramfs) ---
+# Template 9052 hat KEYFILE_PATTERN in initramfs → VM bootet OHNE Konsoleneingabe.
+# Ansible-Role cleanup_keyfile entfernt das Keyfile nach Tang-Bind komplett.
+# End-to-End-Test: Boot ohne Keyfile (nur Tang) nach Ansible-Role.
 
 module "luks_smoketest_02" {
   source = "../../modules/linux-vm"
 
   vm_name        = "luks-smoketest-02"
-  vm_description = "LUKS-Template Smoke-Test 02 — Ansible-Role mit initramfs-Netzwerk-Fix"
+  vm_description = "LUKS-Template Smoke-Test 02 — Template 9052 mit Keyfile in initramfs (autoboot ohne Konsoleneingabe)"
   vm_tags        = ["opentofu", "linux", "test", "luks", "smoketest"]
   vm_id          = 147
 
   proxmox_node = "PVE1"
-  template_id  = 9050 # tmpl-ubuntu-luks-2404-20260415-b96 (net.ifnames=0 biosdevname=0 Fix)
+  template_id  = 9052 # tmpl-ubuntu-luks-2404-20260415-b98 (KEYFILE_PATTERN in initramfs, Pipeline 25736)
 
   cpu_cores    = 2
   memory       = 2048
