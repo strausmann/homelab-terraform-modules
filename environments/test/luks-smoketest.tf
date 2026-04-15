@@ -43,3 +43,40 @@ output "luks_smoketest_01_ip" {
   value       = module.luks_smoketest_01.ipv4_address
   description = "DHCP-IP der Smoke-Test VM (erscheint erst nach LUKS-Unlock + cloud-init)"
 }
+
+# --- Smoke-Test 02: Frische VM fuer Ansible-Role-Validierung ---
+# Nach dem ersten Test auf VM 146: Wir brauchen eine saubere VM ohne
+# alten Clevis-Binding um die fixed Role zu testen (DEVICE=<ens18> + IP=dhcp
+# in initramfs.conf).
+
+module "luks_smoketest_02" {
+  source = "../../modules/linux-vm"
+
+  vm_name        = "luks-smoketest-02"
+  vm_description = "LUKS-Template Smoke-Test 02 — Ansible-Role mit initramfs-Netzwerk-Fix"
+  vm_tags        = ["opentofu", "linux", "test", "luks", "smoketest"]
+  vm_id          = 147
+
+  proxmox_node = "PVE1"
+  template_id  = 9050 # tmpl-ubuntu-luks-2404-20260415-b96 (net.ifnames=0 biosdevname=0 Fix)
+
+  cpu_cores    = 2
+  memory       = 2048
+  storage_pool = "nvme"
+
+  network_bridge = "vnet60"
+  ip_address     = "dhcp"
+  dns_servers    = ["172.16.60.1", "1.1.1.1"]
+  search_domain  = "strausmann.de"
+
+  ci_user = "ubuntu"
+  ssh_keys = [
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK6gqu8YPR+KppBxvK+rsQHKeWq5jY/zC5HJO3sPmx1K ansible-vm-homelab-nodes",
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIARsgv7N7lCpWsn2jy8w8Se2sqKulcaAM8ACIda4B7gm strausmann",
+  ]
+}
+
+output "luks_smoketest_02_ip" {
+  value       = module.luks_smoketest_02.ipv4_address
+  description = "DHCP-IP der zweiten Smoke-Test VM"
+}
